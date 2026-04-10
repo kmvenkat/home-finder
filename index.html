@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Finder · Facing Filter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&family=Geist:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="header">
+        <div class="header-eyebrow">Redfin · Street View · Geocoding</div>
+        <h1 class="header-title">
+          Find homes that<br /><em>face the right way</em>
+        </h1>
+        <p class="header-sub">
+          Search Redfin listings by radius, filter to north &amp; east-facing
+          single family homes using Google Street View.
+        </p>
+      </header>
+
+      <div class="panel">
+        <div class="panel-label">Search</div>
+
+        <div class="addr-row">
+          <input
+            class="addr-input"
+            type="text"
+            id="addr-input"
+            placeholder="Enter a center address or neighborhood..."
+          />
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span class="slider-label">Search radius</span>
+            <span class="slider-val" id="radius-val">5 miles</span>
+          </div>
+          <input
+            type="range"
+            id="radius-slider"
+            min="1"
+            max="20"
+            step="1"
+            value="5"
+          />
+        </div>
+
+        <div class="dir-picker" id="dir-picker" aria-label="Qualifying directions">
+          <button class="dir-btn is-on" type="button" data-dir="N" aria-pressed="true">N</button>
+          <button class="dir-btn is-on" type="button" data-dir="NE" aria-pressed="true">NE</button>
+          <button class="dir-btn is-on" type="button" data-dir="E" aria-pressed="true">E</button>
+          <button class="dir-btn" type="button" data-dir="SE" aria-pressed="false">SE</button>
+          <button class="dir-btn" type="button" data-dir="S" aria-pressed="false">S</button>
+          <button class="dir-btn" type="button" data-dir="SW" aria-pressed="false">SW</button>
+          <button class="dir-btn" type="button" data-dir="W" aria-pressed="false">W</button>
+          <button class="dir-btn" type="button" data-dir="NW" aria-pressed="false">NW</button>
+        </div>
+
+        <div class="filters-row filters-row-main">
+          <div class="filter-cell filter-cell-beds">
+            <label class="filter-label" for="f-beds">Min beds</label>
+            <select class="filter-select" id="f-beds">
+              <option value="3" selected>3+</option>
+              <option value="4">4+</option>
+              <option value="5">5+</option>
+            </select>
+          </div>
+          <div class="filter-cell filter-cell-baths">
+            <label class="filter-label" for="f-baths">Min baths</label>
+            <select class="filter-select" id="f-baths">
+              <option value="2" selected>2+</option>
+              <option value="3">3+</option>
+            </select>
+          </div>
+          <div class="filter-cell filter-cell-sqft">
+            <label class="filter-label" for="f-sqft">Min sqft</label>
+            <select class="filter-select" id="f-sqft">
+              <option value="1500">1,500+</option>
+              <option value="2000" selected>2,000+</option>
+              <option value="2500">2,500+</option>
+              <option value="3000">3,000+</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filters-row" style="grid-template-columns: 1fr 1fr">
+          <div class="filter-cell">
+            <label class="filter-label" for="f-minprice">Min price</label>
+            <select class="filter-select" id="f-minprice">
+              <option value="150000">$150k</option>
+              <option value="200000" selected>$200k</option>
+              <option value="250000">$250k</option>
+              <option value="300000">$300k</option>
+            </select>
+          </div>
+          <div class="filter-cell">
+            <label class="filter-label" for="f-maxprice">Max price</label>
+            <select class="filter-select" id="f-maxprice">
+              <option value="350000">$350k</option>
+              <option value="400000">$400k</option>
+              <option value="450000" selected>$450k</option>
+              <option value="500000">$500k</option>
+              <option value="600000">$600k</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="search-btn" id="search-btn" type="button">
+          Search listings
+        </button>
+
+        <div class="progress-wrap" id="progress-wrap">
+          <div class="progress-header">
+            <span class="progress-label" id="progress-label"
+              >Fetching listings...</span
+            >
+            <span class="progress-count" id="progress-count"></span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+        <div class="error-msg" id="error-msg"></div>
+      </div>
+
+      <div class="results-header" id="results-header">
+        <span class="results-title" id="results-title">Results</span>
+        <div class="results-actions">
+          <div class="results-counts">
+            <span class="count-pill qualify" id="count-qualify">0 qualify</span>
+            <span class="count-pill review" id="count-review">0 review</span>
+            <span class="count-pill no" id="count-no">0 excluded</span>
+          </div>
+          <select class="filter-select sort-select" id="sort-select">
+            <option value="default">Sort: recommended</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="sqft-desc">Sqft: largest first</option>
+            <option value="confidence-desc">Confidence: highest first</option>
+            <option value="year-desc">Year built: newest first</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="listings" id="listings-qualify"></div>
+      <div class="listings" id="listings-review" style="margin-top: 10px"></div>
+
+      <button
+        class="excluded-toggle"
+        id="excluded-toggle"
+        type="button"
+        aria-controls="listings-no"
+        aria-expanded="false"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path
+            id="toggle-arrow"
+            d="M3 4.5L6 7.5L9 4.5"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span id="excluded-label">Show excluded listings</span>
+      </button>
+      <div
+        class="listings"
+        id="listings-no"
+        style="display: none; margin-top: 10px"
+      ></div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
