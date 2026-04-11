@@ -1,16 +1,17 @@
 import { mileToLatDeg, mileToLngDeg } from './geo.js';
 import { API_BASE, PAGE_SIZE } from '../config/constants.js';
 
-function meetsFilters(h, filters) {
-  if (filters.beds !== '' && h.beds < Number(filters.beds)) return false;
-  if (filters.baths !== '' && h.baths < Number(filters.baths)) return false;
-  if (filters.sqft !== '' && h.sqft > 0 && h.sqft < Number(filters.sqft)) return false;
-  if (filters.minPrice !== '' && h.price < Number(filters.minPrice)) return false;
-  if (filters.maxPrice !== '' && h.price > Number(filters.maxPrice)) return false;
+function meetsFilters(h, filters, propertyTypes) {
+  if (filters.beds && h.beds < Number(filters.beds)) return false;
+  if (filters.baths && h.baths < Number(filters.baths)) return false;
+  if (filters.sqft && h.sqft > 0 && h.sqft < Number(filters.sqft)) return false;
+  if (filters.minPrice && h.price < Number(filters.minPrice)) return false;
+  if (filters.maxPrice && h.price > Number(filters.maxPrice)) return false;
+  if (propertyTypes && !propertyTypes.has(h.propertyType)) return false;
   return true;
 }
 
-export async function fetchRedfin(lat, lng, radiusMiles, filters, start = 0) {
+export async function fetchRedfin(lat, lng, radiusMiles, filters, start = 0, propertyTypes = null) {
   const dLat = mileToLatDeg(radiusMiles);
   const dLng = mileToLngDeg(radiusMiles, lat);
 
@@ -49,6 +50,7 @@ export async function fetchRedfin(lat, lng, radiusMiles, filters, start = 0) {
         beds: h.beds || 0,
         baths: h.baths || 0,
         sqft: h.sqFt?.value || 0,
+        propertyType: h.propertyType ?? null,
         lat: h.latLong?.value?.latitude,
         lng: h.latLong?.value?.longitude,
         url: h.url ? 'https://www.redfin.com' + h.url : null,
@@ -62,7 +64,7 @@ export async function fetchRedfin(lat, lng, radiusMiles, filters, start = 0) {
       };
     })
     .filter((h) => h.lat && h.lng)
-    .filter((h) => meetsFilters(h, filters));
+    .filter((h) => meetsFilters(h, filters, propertyTypes));
 
   return {
     listings,

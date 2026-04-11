@@ -397,6 +397,47 @@ input[type='range']::-webkit-slider-thumb:hover {
   background: rgba(184, 245, 74, 0.14);
 }
 
+/* property type picker */
+.type-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.type-btn {
+  min-width: 90px;
+  padding: 0 16px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: 0.5px solid var(--border2);
+  color: var(--muted2);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s,
+    transform 0.1s;
+}
+.type-btn:hover {
+  border-color: var(--border3);
+  color: var(--text);
+}
+.type-btn:active {
+  transform: scale(0.99);
+}
+.type-btn.is-on {
+  background: rgba(184, 245, 74, 0.1);
+  color: var(--accent);
+  border-color: rgba(184, 245, 74, 0.25);
+}
+.type-btn.is-on:hover {
+  background: rgba(184, 245, 74, 0.14);
+}
+
 /* filters row */
 .filters-row {
   display: grid;
@@ -912,6 +953,16 @@ input[type='range']::-webkit-slider-thumb:hover {
   }
   #dir-picker .dir-btn {
     width: 100%;
+  }
+
+  #type-picker {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  #type-picker .type-btn {
+    width: 100%;
+    min-width: 0;
   }
 
   /* filters (beds/baths/sqft) -> 2 columns + areas */

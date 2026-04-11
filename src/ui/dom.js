@@ -50,6 +50,21 @@ export function getQualifyDirs() {
   return new Set(picked);
 }
 
+export function initTypePicker() {
+  document.querySelectorAll('#type-picker .type-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('is-on');
+    });
+  });
+}
+
+export function getPropertyTypes() {
+  const selected = Array.from(document.querySelectorAll('#type-picker .type-btn.is-on')).map((b) =>
+    Number(b.dataset.type),
+  );
+  return selected.length ? new Set(selected) : null; // null = no filter
+}
+
 export function getSortValue() {
   return byId('sort-select')?.value ?? 'default';
 }

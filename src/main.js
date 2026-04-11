@@ -9,7 +9,9 @@ import {
   byId,
   clearResults,
   getQualifyDirs,
+  getPropertyTypes,
   initDirPicker,
+  initTypePicker,
   setExcludedVisible,
   setLoading,
   setProgress,
@@ -264,6 +266,7 @@ async function runSearch(placeResult) {
     const radiusMiles = parseInt(byId('radius-slider')?.value ?? '5', 10);
     const filters = getFilters();
     const qualifyDirs = getQualifyDirs();
+    const propertyTypes = getPropertyTypes();
     lastRenderOpts = { centerLat: lat, centerLng: lng, radiusMiles };
 
     const qualify = [];
@@ -280,7 +283,14 @@ async function runSearch(placeResult) {
       let pageListings;
       let rawCount = 0;
       try {
-        ({ listings: pageListings, rawCount } = await fetchRedfin(lat, lng, radiusMiles, filters, start));
+        ({ listings: pageListings, rawCount } = await fetchRedfin(
+          lat,
+          lng,
+          radiusMiles,
+          filters,
+          start,
+          propertyTypes,
+        ));
       } catch {
         // If first page fails, show error; otherwise continue with what we have.
         if (page === 0) {
@@ -401,6 +411,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   fetch(`${API_BASE}/health`).catch(() => {});
 
   initDirPicker();
+  initTypePicker();
 
   byId('tab-search')?.addEventListener('click', () => setActiveTab('search'));
   byId('tab-check')?.addEventListener('click', () => setActiveTab('check'));
