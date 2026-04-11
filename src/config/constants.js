@@ -6,4 +6,6 @@ export const SV_RADIUS = 50;
 export const DELAY_MS = 120;
 export const PAGE_SIZE = 50; // homes per Redfin API request
 export const MAX_PAGES = 6; // safety cap (300 homes total max)
-export const API_BASE = 'https://home-finder-production.up.railway.app';
+export const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:3001'
+  : 'https://home-finder-production.up.railway.app';
