@@ -1,4 +1,5 @@
 import { DELAY_MS, MAX_PAGES, PAGE_SIZE } from './config/constants.js';
+import { haversine } from './lib/geo.js';
 import { loadMapsSDK, initAutocomplete, geocodeAddr } from './lib/googleMaps.js';
 import { fetchRedfin } from './lib/redfin.js';
 import { getFacing } from './lib/streetView.js';
@@ -7,7 +8,6 @@ import {
   byId,
   clearResults,
   getQualifyDirs,
-  getSortValue,
   initDirPicker,
   setExcludedVisible,
   setLoading,
@@ -22,6 +22,7 @@ import { sortAndRender } from './ui/render.js';
 let excludedVisible = false;
 let searchInProgress = false;
 let allResults = { qualify: [], review: [], no: [] };
+let lastRenderOpts = {};
 
 export function getCurrentResults() {
   return allResults;
@@ -104,6 +105,7 @@ async function runSearch(placeResult) {
     const radiusMiles = parseInt(byId('radius-slider')?.value ?? '5', 10);
     const filters = getFilters();
     const qualifyDirs = getQualifyDirs();
+    lastRenderOpts = { centerLat: lat, centerLng: lng, radiusMiles };
 
     const qualify = [];
     const review = [];
@@ -201,7 +203,8 @@ async function runSearch(placeResult) {
         };
       }
 
-      const result = { ...h, ...facing };
+      const distMiles = haversine(lat, lng, h.lat, h.lng) / 1609.34;
+      const result = { ...h, ...facing, distMiles };
 
       if (result.verdict === 'QUALIFY') {
         qualify.push(result);
@@ -217,7 +220,7 @@ async function runSearch(placeResult) {
     // Reset sort to default on each completed search.
     const sortEl = document.getElementById('sort-select');
     if (sortEl) sortEl.value = 'default';
-    sortAndRender(allResults, 'default');
+    sortAndRender(allResults, 'default', lastRenderOpts);
 
     updateCounts({ qualify: qualify.length, review: review.length, no: no.length });
     showResultsHeader(address);
@@ -239,7 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initDirPicker();
 
   document.getElementById('sort-select')?.addEventListener('change', (e) => {
-    sortAndRender(allResults, e.target.value);
+    sortAndRender(allResults, e.target.value, lastRenderOpts);
   });
 
   loadMapsSDK({ onLoaded: onMapsLoaded }).catch(() => {});

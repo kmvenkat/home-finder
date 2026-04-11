@@ -1,6 +1,7 @@
 import { fmt$ } from '../lib/utils.js';
 
-export function renderCard(h, container) {
+export function renderCard(h, container, opts = {}) {
+  const { radiusMiles } = opts;
   const card = document.createElement('div');
   card.className = `listing-card ${
     h.verdict === 'QUALIFY' ? 'qualify' : h.verdict === 'REVIEW' ? 'review' : 'no'
@@ -67,6 +68,13 @@ export function renderCard(h, container) {
 
   const cityStr = [h.city, h.state, h.zip].filter(Boolean).map(escapeHtml).join(', ');
 
+  const distMiles = Number(h.distMiles);
+  const hasDist = Number.isFinite(distMiles);
+  const outside =
+    hasDist && Number.isFinite(Number(radiusMiles)) && distMiles > Number(radiusMiles);
+  const distLabel = hasDist ? `${distMiles.toFixed(1)} mi${outside ? ' †' : ''}` : '';
+  const distClass = outside ? 'card-dist card-dist-warn' : 'card-dist';
+
   // Note: This keeps the original layout, but escapes dynamic strings.
   card.innerHTML = `
     <div class="card-left">
@@ -85,7 +93,10 @@ export function renderCard(h, container) {
     </div>
     <div class="card-right">
       <div class="card-right-top">
-        <div class="card-price">${fmt$(h.price)}</div>
+        <div class="card-right-top-left">
+          <div class="card-price">${fmt$(h.price)}</div>
+          ${hasDist ? `<div class="${distClass}">${escapeHtml(distLabel)}</div>` : ''}
+        </div>
         <div class="card-facing">
           <div class="mini-compass">
             <svg viewBox="0 0 28 28">
@@ -112,7 +123,7 @@ export function renderCard(h, container) {
   container.appendChild(card);
 }
 
-export function sortAndRender(results, sortValue) {
+export function sortAndRender(results, sortValue, opts = {}) {
   const qualifyEl = document.getElementById('listings-qualify');
   const reviewEl = document.getElementById('listings-review');
   const noEl = document.getElementById('listings-no');
@@ -146,9 +157,9 @@ export function sortAndRender(results, sortValue) {
   const r = sortBucket(results?.review);
   const n = sortBucket(results?.no);
 
-  if (qualifyEl) q.forEach((h) => renderCard(h, qualifyEl));
-  if (reviewEl) r.forEach((h) => renderCard(h, reviewEl));
-  if (noEl) n.forEach((h) => renderCard(h, noEl));
+  if (qualifyEl) q.forEach((h) => renderCard(h, qualifyEl, opts));
+  if (reviewEl) r.forEach((h) => renderCard(h, reviewEl, opts));
+  if (noEl) n.forEach((h) => renderCard(h, noEl, opts));
 }
 
 function escapeHtml(s) {
