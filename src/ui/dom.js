@@ -58,6 +58,49 @@ export function initTypePicker() {
   });
 }
 
+export function setRadiusLabel(miles) {
+  const el = document.getElementById('radius-val');
+  if (!el) return;
+  el.textContent = `${miles} mile${miles > 1 ? 's' : ''}`;
+}
+
+function resetFilters() {
+  ['f-beds', 'f-baths', 'f-sqft', 'f-minprice', 'f-maxprice'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+  const slider = document.getElementById('radius-slider');
+  if (slider) {
+    slider.value = '5';
+    slider.dispatchEvent(new Event('input'));
+  }
+  document.querySelectorAll('#type-picker .type-btn').forEach((btn) => {
+    btn.classList.toggle('is-on', btn.dataset.type === '6');
+  });
+}
+
+export function initMoreFilters() {
+  const btn = document.getElementById('more-filters-btn');
+  const panel = document.getElementById('more-filters-panel');
+  if (!btn || !panel) return;
+
+  btn.addEventListener('click', () => {
+    const isOpen = !panel.hidden;
+    panel.hidden = isOpen;
+    btn.classList.toggle('is-open', !isOpen);
+  });
+
+  document.getElementById('reset-filters-btn')?.addEventListener('click', resetFilters);
+
+  const slider = document.getElementById('radius-slider');
+  if (slider) {
+    setRadiusLabel(parseInt(slider.value, 10));
+    slider.addEventListener('input', () => {
+      setRadiusLabel(parseInt(slider.value, 10));
+    });
+  }
+}
+
 export function getPropertyTypes() {
   const selected = Array.from(document.querySelectorAll('#type-picker .type-btn.is-on')).map((b) =>
     Number(b.dataset.type),

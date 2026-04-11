@@ -11,6 +11,7 @@ import {
   getQualifyDirs,
   getPropertyTypes,
   initDirPicker,
+  initMoreFilters,
   initTypePicker,
   setExcludedVisible,
   setLoading,
@@ -40,12 +41,6 @@ function getFilters() {
     minPrice: byId('f-minprice')?.value ?? '',
     maxPrice: byId('f-maxprice')?.value ?? '',
   };
-}
-
-function setRadiusLabel(miles) {
-  const el = byId('radius-val');
-  if (!el) return;
-  el.textContent = `${miles} mile${miles > 1 ? 's' : ''}`;
 }
 
 function onMapsLoaded() {
@@ -412,6 +407,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   initDirPicker();
   initTypePicker();
+  initMoreFilters();
 
   byId('tab-search')?.addEventListener('click', () => setActiveTab('search'));
   byId('tab-check')?.addEventListener('click', () => setActiveTab('check'));
@@ -434,13 +430,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       searchBtn.disabled = false;
       searchBtn.textContent = 'Search listings';
     }
-  }
-
-  // Prime radius label
-  const slider = byId('radius-slider');
-  if (slider) {
-    setRadiusLabel(parseInt(slider.value, 10));
-    slider.addEventListener('input', () => setRadiusLabel(parseInt(slider.value, 10)));
   }
 
   // Wire events

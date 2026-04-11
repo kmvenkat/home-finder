@@ -46,21 +46,7 @@
           />
         </div>
 
-        <div class="slider-group">
-          <div class="slider-header">
-            <span class="slider-label">Search radius</span>
-            <span class="slider-val" id="radius-val">5 miles</span>
-          </div>
-          <input
-            type="range"
-            id="radius-slider"
-            min="1"
-            max="20"
-            step="1"
-            value="5"
-          />
-        </div>
-
+        <label class="slider-label" for="dir-picker">Facing direction</label>
         <div class="dir-picker" id="dir-picker" aria-label="Qualifying directions">
           <button class="dir-btn is-on" type="button" data-dir="N" aria-pressed="true">N</button>
           <button class="dir-btn is-on" type="button" data-dir="NE" aria-pressed="true">NE</button>
@@ -72,84 +58,118 @@
           <button class="dir-btn" type="button" data-dir="NW" aria-pressed="false">NW</button>
         </div>
 
-        <label class="filter-label" for="type-picker">Property type</label>
-        <div class="type-picker" id="type-picker">
-          <button class="type-btn is-on" type="button" data-type="6" aria-pressed="true">House</button>
-          <button class="type-btn" type="button" data-type="2" aria-pressed="false">Condo</button>
-          <button class="type-btn" type="button" data-type="3" aria-pressed="false">Townhouse</button>
-          <button class="type-btn" type="button" data-type="4" aria-pressed="false">Multi-family</button>
-          <button class="type-btn" type="button" data-type="13" aria-pressed="false">Other</button>
-        </div>
+        <button id="more-filters-btn" type="button" class="more-filters-btn">
+          <span class="more-filters-left">
+            <span>More filters</span>
+          </span>
+          <span class="more-filters-arrow">▾</span>
+        </button>
 
-        <div class="filters-row filters-row-main">
-          <div class="filter-cell filter-cell-beds">
-            <label class="filter-label" for="f-beds">Min beds</label>
-            <select class="filter-select" id="f-beds">
-              <option value="">Any</option>
-              <option value="1">1+</option>
-              <option value="2">2+</option>
-              <option value="3" selected>3+</option>
-              <option value="4">4+</option>
-              <option value="5">5+</option>
-            </select>
+        <div id="more-filters-panel" class="more-filters-panel" hidden>
+          <!-- Radius -->
+          <div class="filter-section">
+            <label class="filter-label"
+              >Search radius
+              <span id="radius-val" class="filter-val">5 miles</span>
+            </label>
+            <input type="range" id="radius-slider" min="1" max="25" value="5" step="1" class="radius-slider" />
           </div>
-          <div class="filter-cell filter-cell-baths">
-            <label class="filter-label" for="f-baths">Min baths</label>
-            <select class="filter-select" id="f-baths">
-              <option value="">Any</option>
-              <option value="1">1+</option>
-              <option value="2" selected>2+</option>
-              <option value="3">3+</option>
-              <option value="4">4+</option>
-            </select>
-          </div>
-          <div class="filter-cell filter-cell-sqft">
-            <label class="filter-label" for="f-sqft">Min sqft</label>
-            <select class="filter-select" id="f-sqft">
-              <option value="">Any</option>
-              <option value="500">500+</option>
-              <option value="1000">1,000+</option>
-              <option value="1500">1,500+</option>
-              <option value="2000" selected>2,000+</option>
-              <option value="2500">2,500+</option>
-              <option value="3000">3,000+</option>
-              <option value="4000">4,000+</option>
-              <option value="5000">5,000+</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="filters-row" style="grid-template-columns: 1fr 1fr">
-          <div class="filter-cell">
-            <label class="filter-label" for="f-minprice">Min price</label>
-            <select class="filter-select" id="f-minprice">
-              <option value="">Any</option>
-              <option value="50000">$50k</option>
-              <option value="100000">$100k</option>
-              <option value="150000">$150k</option>
-              <option value="200000" selected>$200k</option>
-              <option value="250000">$250k</option>
-              <option value="300000">$300k</option>
-              <option value="400000">$400k</option>
-              <option value="500000">$500k</option>
-            </select>
+          <div class="filter-divider"></div>
+
+          <!-- Property type -->
+          <div class="filter-section">
+            <label class="filter-label">Property type</label>
+            <div id="type-picker" class="toggle-row">
+              <button class="type-btn is-on" type="button" data-type="6">House</button>
+              <button class="type-btn" type="button" data-type="2">Condo</button>
+              <button class="type-btn" type="button" data-type="3">Townhouse</button>
+              <button class="type-btn" type="button" data-type="4">Multi-family</button>
+              <button class="type-btn" type="button" data-type="13">Other</button>
+            </div>
           </div>
-          <div class="filter-cell">
-            <label class="filter-label" for="f-maxprice">Max price</label>
-            <select class="filter-select" id="f-maxprice">
-              <option value="">No max</option>
-              <option value="300000">$300k</option>
-              <option value="350000">$350k</option>
-              <option value="400000">$400k</option>
-              <option value="450000" selected>$450k</option>
-              <option value="500000">$500k</option>
-              <option value="600000">$600k</option>
-              <option value="700000">$700k</option>
-              <option value="800000">$800k</option>
-              <option value="1000000">$1M</option>
-              <option value="1500000">$1.5M</option>
-            </select>
+
+          <div class="filter-divider"></div>
+
+          <!-- Beds / Baths / Sqft -->
+          <div class="filter-section filter-row-3">
+            <div>
+              <label class="filter-label">Min beds</label>
+              <select id="f-beds" class="filter-select">
+                <option value="" selected>Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+                <option value="5">5+</option>
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Min baths</label>
+              <select id="f-baths" class="filter-select">
+                <option value="" selected>Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Min sqft</label>
+              <select id="f-sqft" class="filter-select">
+                <option value="" selected>Any</option>
+                <option value="500">500+</option>
+                <option value="1000">1,000+</option>
+                <option value="1500">1,500+</option>
+                <option value="2000">2,000+</option>
+                <option value="2500">2,500+</option>
+                <option value="3000">3,000+</option>
+                <option value="4000">4,000+</option>
+                <option value="5000">5,000+</option>
+              </select>
+            </div>
           </div>
+
+          <div class="filter-divider"></div>
+
+          <!-- Price -->
+          <div class="filter-section filter-row-2">
+            <div>
+              <label class="filter-label">Min price</label>
+              <select id="f-minprice" class="filter-select">
+                <option value="" selected>Any</option>
+                <option value="50000">$50k</option>
+                <option value="100000">$100k</option>
+                <option value="150000">$150k</option>
+                <option value="200000">$200k</option>
+                <option value="250000">$250k</option>
+                <option value="300000">$300k</option>
+                <option value="400000">$400k</option>
+                <option value="500000">$500k</option>
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Max price</label>
+              <select id="f-maxprice" class="filter-select">
+                <option value="" selected>Any</option>
+                <option value="300000">$300k</option>
+                <option value="350000">$350k</option>
+                <option value="400000">$400k</option>
+                <option value="450000">$450k</option>
+                <option value="500000">$500k</option>
+                <option value="600000">$600k</option>
+                <option value="700000">$700k</option>
+                <option value="800000">$800k</option>
+                <option value="1000000">$1M</option>
+                <option value="1500000">$1.5M</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-divider"></div>
+
+          <!-- Reset -->
+          <button id="reset-filters-btn" type="button" class="reset-filters-btn">Reset filters</button>
         </div>
 
         <button class="search-btn" id="search-btn" type="button">
