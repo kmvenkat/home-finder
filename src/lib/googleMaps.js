@@ -25,7 +25,14 @@ export async function loadMapsSDK({ onLoaded } = {}) {
   };
 
   mapsSdkPromise = (async () => {
-    const res = await fetch(`${API_BASE}/api/maps-key`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    let res;
+    try {
+      res = await fetch(`${API_BASE}/api/maps-key`, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
     const data = await res.json();
     const key = data?.key;
     if (!key) throw new Error('Missing maps key from backend');
@@ -46,7 +53,10 @@ export async function loadMapsSDK({ onLoaded } = {}) {
       s.onerror = () => reject(new Error('Failed to load Maps SDK'));
       document.head.appendChild(s);
     });
-  })();
+  })().catch((err) => {
+    mapsSdkPromise = null;
+    throw err;
+  });
 
   await mapsSdkPromise;
 }

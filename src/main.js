@@ -1,4 +1,4 @@
-import { DELAY_MS, MAX_PAGES, PAGE_SIZE } from './config/constants.js';
+import { API_BASE, DELAY_MS, MAX_PAGES, PAGE_SIZE } from './config/constants.js';
 import { haversine } from './lib/geo.js';
 import { loadMapsSDK, initAutocomplete, geocodeAddr } from './lib/googleMaps.js';
 import { fetchRedfin } from './lib/redfin.js';
@@ -238,14 +238,30 @@ function toggleExcluded() {
   setExcludedVisible(excludedVisible);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  fetch(`${API_BASE}/health`).catch(() => {});
+
   initDirPicker();
 
   document.getElementById('sort-select')?.addEventListener('change', (e) => {
     sortAndRender(allResults, e.target.value, lastRenderOpts);
   });
 
-  loadMapsSDK({ onLoaded: onMapsLoaded }).catch(() => {});
+  const searchBtn = byId('search-btn');
+  if (searchBtn) {
+    searchBtn.disabled = true;
+    searchBtn.textContent = 'Loading maps...';
+  }
+  try {
+    await loadMapsSDK({ onLoaded: onMapsLoaded });
+  } catch {
+    // ignore — user can retry search; maps may still load on refresh
+  } finally {
+    if (searchBtn) {
+      searchBtn.disabled = false;
+      searchBtn.textContent = 'Search listings';
+    }
+  }
 
   // Prime radius label
   const slider = byId('radius-slider');
@@ -254,7 +270,6 @@ window.addEventListener('DOMContentLoaded', () => {
   slider.addEventListener('input', () => setRadiusLabel(parseInt(slider.value, 10)));
 
   // Wire events
-  const searchBtn = byId('search-btn');
   if (searchBtn) searchBtn.addEventListener('click', () => runSearch().catch(() => {}));
 
   const excludedToggle = byId('excluded-toggle');
