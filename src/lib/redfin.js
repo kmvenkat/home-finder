@@ -2,11 +2,11 @@ import { mileToLatDeg, mileToLngDeg } from './geo.js';
 import { API_BASE, PAGE_SIZE } from '../config/constants.js';
 
 function meetsFilters(h, filters) {
-  if (h.beds < Number(filters.beds)) return false;
-  if (h.baths < Number(filters.baths)) return false;
-  if (h.sqft > 0 && h.sqft < Number(filters.sqft)) return false;
-  if (h.price < Number(filters.minPrice)) return false;
-  if (h.price > Number(filters.maxPrice)) return false;
+  if (filters.beds !== '' && h.beds < Number(filters.beds)) return false;
+  if (filters.baths !== '' && h.baths < Number(filters.baths)) return false;
+  if (filters.sqft !== '' && h.sqft > 0 && h.sqft < Number(filters.sqft)) return false;
+  if (filters.minPrice !== '' && h.price < Number(filters.minPrice)) return false;
+  if (filters.maxPrice !== '' && h.price > Number(filters.maxPrice)) return false;
   return true;
 }
 
