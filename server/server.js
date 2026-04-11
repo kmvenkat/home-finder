@@ -66,6 +66,30 @@ app.get('/api/streetview', async (req, res) => {
   }
 });
 
+// ── street view static image proxy ───────────────────────────────────────────
+app.get('/api/streetview-image', async (req, res) => {
+  const { lat, lng, size = '440x360' } = req.query;
+  if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' });
+  if (!GOOGLE_KEY) return res.status(500).json({ error: 'GOOGLE_API_KEY not configured' });
+
+  try {
+    const url = `https://maps.googleapis.com/maps/api/streetview?size=${encodeURIComponent(
+      String(size),
+    )}&location=${encodeURIComponent(`${lat},${lng}`)}&key=${encodeURIComponent(GOOGLE_KEY)}`;
+    const upstream = await fetch(url);
+
+    const ct = upstream.headers.get('content-type') || 'image/jpeg';
+    res.status(upstream.status);
+    res.setHeader('Content-Type', ct);
+
+    const buf = Buffer.from(await upstream.arrayBuffer());
+    res.end(buf);
+  } catch (err) {
+    console.error('[streetview-image]', err);
+    res.status(500).json({ error: 'Street View image request failed' });
+  }
+});
+
 // ── redfin proxy ───────────────────────────────────────────────────────────────
 app.get('/api/redfin', async (req, res) => {
   const {

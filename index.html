@@ -24,6 +24,16 @@
         </p>
       </header>
 
+      <div class="tab-bar" role="tablist" aria-label="Mode">
+        <button class="tab-btn active" type="button" id="tab-search" role="tab" aria-selected="true">
+          Search listings
+        </button>
+        <button class="tab-btn" type="button" id="tab-check" role="tab" aria-selected="false">
+          Check a house
+        </button>
+      </div>
+
+      <div id="panel-search">
       <div class="panel">
         <div class="panel-label">Search</div>
 
@@ -162,8 +172,8 @@
           <select class="filter-select sort-select" id="sort-select">
             <option value="default">Sort: recommended</option>
             <option value="price-asc">Price: low to high</option>
-            <option value="price-desc">Price: high to low</option>
             <option value="dist-asc">Distance: nearest first</option>
+            <option value="price-desc">Price: high to low</option>
             <option value="sqft-desc">Sqft: largest first</option>
             <option value="confidence-desc">Confidence: highest first</option>
             <option value="year-desc">Year built: newest first</option>
@@ -200,6 +210,69 @@
         id="listings-no"
         style="display: none; margin-top: 10px"
       ></div>
+      </div>
+
+      <div id="panel-check" style="display: none">
+        <div class="panel">
+          <h2 class="check-title">Check a house</h2>
+          <p class="check-subtitle">
+            Enter any address to check which direction it faces using Google Street View.
+          </p>
+
+          <div class="addr-row" style="margin-top: 14px">
+            <input
+              class="addr-input"
+              type="text"
+              id="check-addr-input"
+              placeholder="Enter a street address..."
+              autocomplete="off"
+            />
+          </div>
+
+          <button class="search-btn" id="check-btn" type="button" style="margin-top: 14px">
+            Check direction
+          </button>
+
+          <div class="error-msg" id="check-error" style="display: none; margin-top: 14px"></div>
+
+          <div id="check-result" style="display: none">
+            <div class="check-result-card">
+              <div class="check-media">
+                <img
+                  class="check-sv-thumb"
+                  id="check-sv-thumb"
+                  width="220"
+                  height="180"
+                  alt=""
+                  loading="lazy"
+                />
+                <div class="compass-wrap">
+                  <div id="check-compass"></div>
+                </div>
+              </div>
+
+              <div class="check-details">
+                <div class="check-dir-label" id="check-dir-label">—</div>
+                <div class="check-facing-label" id="check-facing-label">—</div>
+                <div class="check-addr-result" id="check-addr-result">—</div>
+
+                <div class="check-conf-row" style="margin-top: 14px">
+                  <div class="conf-bar-wrap" id="check-conf-bar">
+                    <div class="conf-bar-fill" id="check-conf-fill" style="width: 0%"></div>
+                  </div>
+                  <div class="check-conf-val" id="check-conf-val">0 / 100</div>
+                </div>
+
+                <ul class="check-flags" id="check-flags"></ul>
+
+                <a class="card-link primary" id="check-redfin-link" href="#" style="display: none; margin-top: 12px"
+                  >View on Redfin</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script type="module" src="./src/main.js"></script>

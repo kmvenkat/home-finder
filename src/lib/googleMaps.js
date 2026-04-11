@@ -1,6 +1,31 @@
 import { API_BASE } from '../config/constants.js';
 
 let mapsSdkPromise = null;
+let mapsBrowserKeyPromise = null;
+
+export async function fetchMapsBrowserKey() {
+  if (mapsBrowserKeyPromise) return mapsBrowserKeyPromise;
+
+  mapsBrowserKeyPromise = (async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    let res;
+    try {
+      res = await fetch(`${API_BASE}/api/maps-key`, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+    const data = await res.json();
+    const key = data?.key;
+    if (!key) throw new Error('Missing maps key from backend');
+    return key;
+  })().catch((err) => {
+    mapsBrowserKeyPromise = null;
+    throw err;
+  });
+
+  return mapsBrowserKeyPromise;
+}
 
 export async function loadMapsSDK({ onLoaded } = {}) {
   if (document.getElementById('maps-sdk')) {
@@ -25,17 +50,7 @@ export async function loadMapsSDK({ onLoaded } = {}) {
   };
 
   mapsSdkPromise = (async () => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    let res;
-    try {
-      res = await fetch(`${API_BASE}/api/maps-key`, { signal: controller.signal });
-    } finally {
-      clearTimeout(timeout);
-    }
-    const data = await res.json();
-    const key = data?.key;
-    if (!key) throw new Error('Missing maps key from backend');
+    const key = await fetchMapsBrowserKey();
 
     await new Promise((resolve, reject) => {
       // Wrap the callback so our promise resolves only when Maps is ready.
