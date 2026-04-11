@@ -145,6 +145,7 @@ export function sortAndRender(results, sortValue, opts = {}) {
     copy.sort((a, b) => {
       if (sortValue === 'price-asc') return numOr0(a.price) - numOr0(b.price);
       if (sortValue === 'price-desc') return numOr0(b.price) - numOr0(a.price);
+      if (sortValue === 'dist-asc') return numOr0(a.distMiles) - numOr0(b.distMiles);
       if (sortValue === 'sqft-desc') return numOr0(b.sqft) - numOr0(a.sqft);
       if (sortValue === 'confidence-desc') return numOr0(b.score) - numOr0(a.score);
       if (sortValue === 'year-desc') return numOr0(b.yearBuilt) - numOr0(a.yearBuilt);
