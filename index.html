@@ -68,17 +68,17 @@
           <!-- Price -->
           <div class="filter-section">
             <h3 class="filter-section-title">Price</h3>
-            <div class="range-track-wrap">
-              <div class="range-track">
-                <div class="range-track-fill" id="price-track-fill"></div>
-              </div>
-              <input type="range" id="price-min-slider" min="0" max="20" value="0" class="price-slider price-slider-min" />
-              <input type="range" id="price-max-slider" min="0" max="20" value="20" class="price-slider price-slider-max" />
+
+            <!-- Preset range pills -->
+            <div class="pill-row" id="price-presets" style="margin-bottom: 16px">
+              <button type="button" class="pill-btn is-on" data-min="" data-max="">Any</button>
+              <button type="button" class="pill-btn" data-min="0" data-max="300000">Under $300k</button>
+              <button type="button" class="pill-btn" data-min="300000" data-max="500000">$300k–$500k</button>
+              <button type="button" class="pill-btn" data-min="500000" data-max="800000">$500k–$800k</button>
+              <button type="button" class="pill-btn" data-min="800000" data-max="">$800k+</button>
             </div>
-            <div class="range-labels">
-              <span id="price-min-label">Any</span>
-              <span id="price-max-label">Any</span>
-            </div>
+
+            <!-- Custom min/max text inputs -->
             <div class="min-max-inputs">
               <input type="text" id="f-minprice" placeholder="Min price" class="range-input" autocomplete="off" />
               <span class="range-dash">–</span>

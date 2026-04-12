@@ -94,81 +94,12 @@ export function setRadiusLabel(miles) {
   el.textContent = `${miles} mile${miles > 1 ? 's' : ''}`;
 }
 
-const PRICE_STEPS = [
-  0, 50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 600000, 700000, 800000,
-  900000, 1000000, 1250000, 1500000, 2000000, 5000000, Infinity,
-];
-
-const PRICE_LABELS = [
-  'Any',
-  '$50k',
-  '$100k',
-  '$150k',
-  '$200k',
-  '$250k',
-  '$300k',
-  '$350k',
-  '$400k',
-  '$450k',
-  '$500k',
-  '$600k',
-  '$700k',
-  '$800k',
-  '$900k',
-  '$1M',
-  '$1.25M',
-  '$1.5M',
-  '$2M',
-  '$5M',
-  'No max',
-];
-
-function formatPriceInput(n) {
-  if (n == null || !Number.isFinite(n)) return '';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-function parsePriceDigits(str) {
-  const d = String(str || '').replace(/[^0-9]/g, '');
-  if (!d) return null;
-  const n = Number(d);
-  return Number.isFinite(n) ? n : null;
-}
-
-function amountToMinIndex(amount) {
-  const n = Number(amount);
-  if (!Number.isFinite(n) || n <= 0) return 0;
-  for (let i = 19; i >= 1; i--) {
-    if (PRICE_STEPS[i] <= n) return i;
-  }
-  return 1;
-}
-
-function amountToMaxIndex(amount) {
-  const n = Number(amount);
-  if (!Number.isFinite(n) || n <= 0) return 20;
-  if (n >= PRICE_STEPS[19]) return 19;
-  for (let j = 19; j >= 1; j--) {
-    if (PRICE_STEPS[j] <= n) return j;
-  }
-  return 1;
-}
-
-function refreshPriceSliderZIndex(minIdx, maxIdx) {
-  const minEl = document.getElementById('price-min-slider');
-  const maxEl = document.getElementById('price-max-slider');
-  if (!minEl || !maxEl) return;
-  if (minIdx >= maxIdx) {
-    minEl.style.zIndex = '4';
-    maxEl.style.zIndex = '3';
-  } else {
-    minEl.style.zIndex = minIdx > maxIdx - 1 ? '4' : '2';
-    maxEl.style.zIndex = minIdx > maxIdx - 1 ? '2' : '4';
-  }
+function formatPrice(val) {
+  const n = Number(val);
+  if (!n) return '';
+  if (n >= 1000000) return `$${(n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1)}M`;
+  if (n >= 1000) return `$${(n / 1000).toFixed(0)}k`;
+  return `$${n}`;
 }
 
 function resetFilters() {
@@ -184,78 +115,19 @@ function resetFilters() {
     if (el) el.selectedIndex = 0;
   });
 
-  const minSl = document.getElementById('price-min-slider');
-  const maxSl = document.getElementById('price-max-slider');
-  if (minSl) minSl.value = '0';
-  if (maxSl) maxSl.value = '20';
   const minIn = document.getElementById('f-minprice');
   const maxIn = document.getElementById('f-maxprice');
   if (minIn) minIn.value = '';
   if (maxIn) maxIn.value = '';
 
-  syncPriceUIFromSliders();
+  const presetBtns = document.querySelectorAll('#price-presets .pill-btn');
+  presetBtns.forEach((b) => b.classList.toggle('is-on', b === presetBtns[0]));
 
   const slider = document.getElementById('radius-slider');
   if (slider) {
     slider.value = '5';
     slider.dispatchEvent(new Event('input'));
   }
-}
-
-function syncPriceUIFromSliders() {
-  const minEl = document.getElementById('price-min-slider');
-  const maxEl = document.getElementById('price-max-slider');
-  const fill = document.getElementById('price-track-fill');
-  const minLabel = document.getElementById('price-min-label');
-  const maxLabel = document.getElementById('price-max-label');
-  const minIn = document.getElementById('f-minprice');
-  const maxIn = document.getElementById('f-maxprice');
-  if (!minEl || !maxEl) return;
-
-  let minIdx = Math.max(0, Math.min(20, Number(minEl.value)));
-  let maxIdx = Math.max(0, Math.min(20, Number(maxEl.value)));
-  if (minIdx > maxIdx) {
-    maxIdx = minIdx;
-    maxEl.value = String(maxIdx);
-  }
-
-  if (minLabel) minLabel.textContent = PRICE_LABELS[minIdx] ?? 'Any';
-  if (maxLabel) maxLabel.textContent = PRICE_LABELS[maxIdx] ?? 'Any';
-
-  if (fill) {
-    const leftPct = (minIdx / 20) * 100;
-    const widthPct = ((maxIdx - minIdx) / 20) * 100;
-    fill.style.left = `${leftPct}%`;
-    fill.style.width = `${widthPct}%`;
-  }
-
-  if (minIn) minIn.value = minIdx > 0 ? formatPriceInput(PRICE_STEPS[minIdx]) : '';
-  if (maxIn) maxIn.value = maxIdx < 20 && maxIdx > 0 ? formatPriceInput(PRICE_STEPS[maxIdx]) : '';
-
-  refreshPriceSliderZIndex(minIdx, maxIdx);
-}
-
-function applyParsedPriceInputs() {
-  const minIn = document.getElementById('f-minprice');
-  const maxIn = document.getElementById('f-maxprice');
-  const minEl = document.getElementById('price-min-slider');
-  const maxEl = document.getElementById('price-max-slider');
-  if (!minEl || !maxEl) return;
-
-  const minAmt = parsePriceDigits(minIn?.value);
-  const maxAmt = parsePriceDigits(maxIn?.value);
-
-  let minIdx = minAmt == null ? 0 : amountToMinIndex(minAmt);
-  let maxIdx = maxAmt == null ? 20 : amountToMaxIndex(maxAmt);
-  if (minIdx > maxIdx) {
-    if (minAmt != null && maxAmt != null) maxIdx = minIdx;
-    else if (minAmt != null) maxIdx = 20;
-    else minIdx = 0;
-  }
-
-  minEl.value = String(minIdx);
-  maxEl.value = String(maxIdx);
-  syncPriceUIFromSliders();
 }
 
 export function initMoreFilters() {
@@ -276,38 +148,24 @@ export function initMoreFilters() {
     btn.classList.remove('is-open');
   });
 
-  const minSl = document.getElementById('price-min-slider');
-  const maxSl = document.getElementById('price-max-slider');
-  if (minSl && maxSl) {
-    minSl.addEventListener('input', () => {
-      let vMin = Number(minSl.value);
-      let vMax = Number(maxSl.value);
-      if (vMin > vMax) {
-        maxSl.value = String(vMin);
-        vMax = vMin;
-      }
-      syncPriceUIFromSliders();
-    });
-    maxSl.addEventListener('input', () => {
-      let vMin = Number(minSl.value);
-      let vMax = Number(maxSl.value);
-      if (vMax < vMin) {
-        minSl.value = String(vMax);
-        vMin = vMax;
-      }
-      syncPriceUIFromSliders();
-    });
-  }
+  initPillPicker('price-presets');
 
-  const minIn = document.getElementById('f-minprice');
-  const maxIn = document.getElementById('f-maxprice');
-  const onTextPrice = () => applyParsedPriceInputs();
-  minIn?.addEventListener('change', onTextPrice);
-  maxIn?.addEventListener('change', onTextPrice);
-  minIn?.addEventListener('blur', onTextPrice);
-  maxIn?.addEventListener('blur', onTextPrice);
+  document.getElementById('price-presets')?.addEventListener('click', (e) => {
+    const pillBtn = e.target.closest('.pill-btn');
+    if (!pillBtn) return;
+    const min = pillBtn.dataset.min;
+    const max = pillBtn.dataset.max;
+    const minEl = document.getElementById('f-minprice');
+    const maxEl = document.getElementById('f-maxprice');
+    if (minEl) minEl.value = min ? formatPrice(min) : '';
+    if (maxEl) maxEl.value = max ? formatPrice(max) : '';
+  });
 
-  syncPriceUIFromSliders();
+  ['f-minprice', 'f-maxprice'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      document.querySelectorAll('#price-presets .pill-btn').forEach((b) => b.classList.remove('is-on'));
+    });
+  });
 
   const slider = document.getElementById('radius-slider');
   if (slider) {
