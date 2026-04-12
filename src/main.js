@@ -43,8 +43,8 @@ function getFilters() {
     sqftMax: document.getElementById('f-sqft-max')?.value ?? '',
     yearMin: document.getElementById('f-year-min')?.value ?? '',
     yearMax: document.getElementById('f-year-max')?.value ?? '',
-    minPrice: document.getElementById('f-minprice')?.value?.replace(/[^0-9]/g, '') ?? '',
-    maxPrice: document.getElementById('f-maxprice')?.value?.replace(/[^0-9]/g, '') ?? '',
+    minPrice: document.getElementById('f-minprice')?.value ?? '',
+    maxPrice: document.getElementById('f-maxprice')?.value ?? '',
   };
 }
 

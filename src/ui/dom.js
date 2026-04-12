@@ -94,12 +94,36 @@ export function setRadiusLabel(miles) {
   el.textContent = `${miles} mile${miles > 1 ? 's' : ''}`;
 }
 
-function formatPrice(val) {
-  const n = Number(val);
-  if (!n) return '';
-  if (n >= 1000000) return `$${(n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1)}M`;
-  if (n >= 1000) return `$${(n / 1000).toFixed(0)}k`;
-  return `$${n}`;
+function snapSelectToValue(selectId, value) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  const raw = value === '' || value == null || value === undefined ? '' : String(value);
+  if (raw === '' || raw === '0' || Number(raw) === 0) {
+    select.value = '';
+    return;
+  }
+  const options = Array.from(select.options).filter((o) => o.value !== '');
+  const match = options.find((o) => o.value === raw);
+  if (match) {
+    select.value = match.value;
+    return;
+  }
+  const target = Number(raw);
+  if (!Number.isFinite(target)) {
+    select.value = '';
+    return;
+  }
+  let best = '';
+  let bestNum = -Infinity;
+  for (const o of options) {
+    const n = Number(o.value);
+    if (!Number.isFinite(n)) continue;
+    if (n <= target && n > bestNum) {
+      bestNum = n;
+      best = o.value;
+    }
+  }
+  select.value = best;
 }
 
 function resetFilters() {
@@ -153,16 +177,12 @@ export function initMoreFilters() {
   document.getElementById('price-presets')?.addEventListener('click', (e) => {
     const pillBtn = e.target.closest('.pill-btn');
     if (!pillBtn) return;
-    const min = pillBtn.dataset.min;
-    const max = pillBtn.dataset.max;
-    const minEl = document.getElementById('f-minprice');
-    const maxEl = document.getElementById('f-maxprice');
-    if (minEl) minEl.value = min ? formatPrice(min) : '';
-    if (maxEl) maxEl.value = max ? formatPrice(max) : '';
+    snapSelectToValue('f-minprice', pillBtn.dataset.min);
+    snapSelectToValue('f-maxprice', pillBtn.dataset.max);
   });
 
   ['f-minprice', 'f-maxprice'].forEach((id) => {
-    document.getElementById(id)?.addEventListener('input', () => {
+    document.getElementById(id)?.addEventListener('change', () => {
       document.querySelectorAll('#price-presets .pill-btn').forEach((b) => b.classList.remove('is-on'));
     });
   });
