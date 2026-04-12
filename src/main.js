@@ -30,6 +30,7 @@ let excludedVisible = false;
 let searchInProgress = false;
 let allResults = { qualify: [], no: [] };
 let lastRenderOpts = {};
+let lastSelectedPlace = null;
 
 export function getCurrentResults() {
   return allResults;
@@ -52,14 +53,16 @@ function onMapsLoaded() {
   const addrInput = byId('addr-input');
   if (addrInput) {
     initAutocomplete(addrInput, {
-      onPlaceSelected: (place) => runSearch(place).catch(() => {}),
+      onPlaceSelected: (place) => {
+        lastSelectedPlace = place;
+      },
     });
   }
 
   const checkAddr = byId('check-addr-input');
   if (checkAddr) {
     initAutocomplete(checkAddr, {
-      onPlaceSelected: () => runCheckHouse().catch(() => {}),
+      onPlaceSelected: () => {},
     });
   }
 }
@@ -226,7 +229,7 @@ function listingKey(h) {
   return `${addr}|${zip}`;
 }
 
-async function runSearch(placeResult) {
+async function runSearch() {
   if (searchInProgress) return;
   searchInProgress = true;
 
@@ -240,6 +243,10 @@ async function runSearch(placeResult) {
     const address = addrEl?.value?.trim?.() ?? '';
     if (!address) return;
 
+    if (lastSelectedPlace && byId('addr-input')?.value !== lastSelectedPlace.formatted_address) {
+      lastSelectedPlace = null;
+    }
+
     clearResults();
     excludedVisible = false;
     resetRenderState();
@@ -251,10 +258,11 @@ async function runSearch(placeResult) {
     let lat;
     let lng;
     let locType;
-    if (placeResult?.geometry) {
-      lat = placeResult.geometry.location.lat();
-      lng = placeResult.geometry.location.lng();
-      locType = placeResult.geometry.location_type || 'ROOFTOP';
+    if (lastSelectedPlace?.geometry) {
+      lat = lastSelectedPlace.geometry.location.lat();
+      lng = lastSelectedPlace.geometry.location.lng();
+      locType = lastSelectedPlace.geometry.location_type || 'ROOFTOP';
+      lastSelectedPlace = null;
     } else {
       const geo = await geocodeAddr(address);
       if (!geo) {
