@@ -24,7 +24,7 @@ import {
   updateCounts,
 } from './ui/dom.js';
 import { renderCompass } from './ui/compass.js';
-import { sortAndRender } from './ui/render.js';
+import { resetRenderState, sortAndRender } from './ui/render.js';
 
 let excludedVisible = false;
 let searchInProgress = false;
@@ -242,6 +242,8 @@ async function runSearch(placeResult) {
 
     clearResults();
     excludedVisible = false;
+    resetRenderState();
+    const searchId = Date.now();
 
     setLoading(true);
     setProgress('Geocoding address...', 5);
@@ -267,7 +269,7 @@ async function runSearch(placeResult) {
     const filters = getFilters();
     const qualifyDirs = getQualifyDirs();
     const propertyTypes = getPropertyTypes();
-    lastRenderOpts = { centerLat: lat, centerLng: lng, radiusMiles };
+    lastRenderOpts = { centerLat: lat, centerLng: lng, radiusMiles, searchId };
 
     const qualify = [];
     const review = [];
@@ -318,7 +320,7 @@ async function runSearch(placeResult) {
       if (rawCount < PAGE_SIZE) break;
 
       start += PAGE_SIZE;
-      await sleep(200); // small delay between page fetches to be polite
+      await sleep(DELAY_MS);
     }
 
     console.info(
@@ -338,9 +340,12 @@ async function runSearch(placeResult) {
 
     setProgress(`Analyzing ${allListings.length} listings...`, 20, `0 / ${allListings.length}`);
 
+    const sortEl = document.getElementById('sort-select');
+    if (sortEl) sortEl.value = 'default';
+
     for (let i = 0; i < allListings.length; i++) {
       const h = allListings[i];
-      const remaining = (allListings.length - (i + 1)) * 0.8;
+      const remaining = (allListings.length - (i + 1)) * 0.12;
       const pct = 20 + Math.round(((i + 1) / allListings.length) * 78);
 
       setProgress(
@@ -349,7 +354,6 @@ async function runSearch(placeResult) {
         `${i + 1} / ${allListings.length}`,
       );
 
-      await sleep(DELAY_MS);
       let facing;
       try {
         facing = await getFacing({
@@ -382,17 +386,15 @@ async function runSearch(placeResult) {
       } else {
         no.push(result);
       }
+
+      allResults = { qualify, review, no };
+      sortAndRender(allResults, sortEl?.value ?? 'default', lastRenderOpts);
+      updateCounts({ qualify: qualify.length, review: review.length, no: no.length });
+
+      if (qualify.length + review.length + no.length === 1) {
+        showResultsHeader(address);
+      }
     }
-
-    allResults = { qualify, review, no };
-
-    // Reset sort to default on each completed search.
-    const sortEl = document.getElementById('sort-select');
-    if (sortEl) sortEl.value = 'default';
-    sortAndRender(allResults, 'default', lastRenderOpts);
-
-    updateCounts({ qualify: qualify.length, review: review.length, no: no.length });
-    showResultsHeader(address);
 
     setLoading(false);
     setProgress('Done', 100);

@@ -1,5 +1,19 @@
 import { fmt$ } from '../lib/utils.js';
 
+let lastSortValue = null;
+let lastSearchId = null;
+
+export function resetRenderState() {
+  lastSortValue = null;
+  lastSearchId = null;
+}
+
+function dataKeyForListing(h) {
+  const addr = (h?.address ?? '').trim().toLowerCase();
+  const zip = (h?.zip ?? '').trim();
+  return `${addr}|${zip}`;
+}
+
 export function renderCard(h, container, opts = {}) {
   const { radiusMiles } = opts;
   const card = document.createElement('div');
@@ -120,17 +134,21 @@ export function renderCard(h, container, opts = {}) {
 
   card.insertBefore(thumbWrap, card.firstChild);
 
+  card.dataset.key = dataKeyForListing(h);
   container.appendChild(card);
 }
 
 export function sortAndRender(results, sortValue, opts = {}) {
+  const { searchId } = opts;
   const qualifyEl = document.getElementById('listings-qualify');
   const reviewEl = document.getElementById('listings-review');
   const noEl = document.getElementById('listings-no');
 
-  if (qualifyEl) qualifyEl.innerHTML = '';
-  if (reviewEl) reviewEl.innerHTML = '';
-  if (noEl) noEl.innerHTML = '';
+  const isStreaming =
+    searchId != null &&
+    searchId === lastSearchId &&
+    sortValue === lastSortValue &&
+    sortValue === 'default';
 
   const sortBucket = (arr) => {
     if (!Array.isArray(arr)) return [];
@@ -158,9 +176,37 @@ export function sortAndRender(results, sortValue, opts = {}) {
   const r = sortBucket(results?.review);
   const n = sortBucket(results?.no);
 
-  if (qualifyEl) q.forEach((h) => renderCard(h, qualifyEl, opts));
-  if (reviewEl) r.forEach((h) => renderCard(h, reviewEl, opts));
-  if (noEl) n.forEach((h) => renderCard(h, noEl, opts));
+  if (!isStreaming) {
+    if (qualifyEl) qualifyEl.innerHTML = '';
+    if (reviewEl) reviewEl.innerHTML = '';
+    if (noEl) noEl.innerHTML = '';
+  }
+
+  const renderBucket = (arr, el) => {
+    if (!el) return;
+    if (!isStreaming) {
+      arr.forEach((h) => renderCard(h, el, opts));
+      return;
+    }
+    const existing = new Set(
+      Array.from(el.querySelectorAll('.listing-card[data-key]'))
+        .map((c) => c.dataset.key)
+        .filter(Boolean),
+    );
+    for (const h of arr) {
+      const k = dataKeyForListing(h);
+      if (!k || existing.has(k)) continue;
+      renderCard(h, el, opts);
+      existing.add(k);
+    }
+  };
+
+  renderBucket(q, qualifyEl);
+  renderBucket(r, reviewEl);
+  renderBucket(n, noEl);
+
+  lastSortValue = sortValue;
+  if (searchId != null) lastSearchId = searchId;
 }
 
 function escapeHtml(s) {
