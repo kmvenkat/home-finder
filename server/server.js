@@ -105,11 +105,11 @@ app.get('/api/redfin', async (req, res) => {
 
   const params = new URLSearchParams({
     al: 1, uipt: '1', sf: '1,2,3,5,6,7', v: 8,
-    ...(min_beds   && { min_beds }),
-    ...(min_baths  && { min_baths }),
-    ...(min_sqft   && { min_sqft }),
-    ...(min_price  && { min_price }),
-    ...(max_price  && { min_price, max_price }),
+    ...(min_beds && { min_beds }),
+    ...(min_baths && { min_baths }),
+    ...(min_sqft && { min_sqft }),
+    ...(min_price && { min_price }),
+    ...(max_price && { max_price }),
     num_homes: num_homes || 50,
     start,
     max_lat, min_lat, max_long, min_long,

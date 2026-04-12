@@ -8,10 +8,12 @@ import { sleep } from './lib/utils.js';
 import {
   byId,
   clearResults,
+  getPillValue,
   getQualifyDirs,
   getPropertyTypes,
   initDirPicker,
   initMoreFilters,
+  initPillPicker,
   initTypePicker,
   setExcludedVisible,
   setLoading,
@@ -35,11 +37,14 @@ export function getCurrentResults() {
 
 function getFilters() {
   return {
-    beds: byId('f-beds')?.value ?? '',
-    baths: byId('f-baths')?.value ?? '',
-    sqft: byId('f-sqft')?.value ?? '',
-    minPrice: byId('f-minprice')?.value ?? '',
-    maxPrice: byId('f-maxprice')?.value ?? '',
+    beds: getPillValue('beds-picker'),
+    baths: getPillValue('baths-picker'),
+    sqftMin: document.getElementById('f-sqft-min')?.value ?? '',
+    sqftMax: document.getElementById('f-sqft-max')?.value ?? '',
+    yearMin: document.getElementById('f-year-min')?.value ?? '',
+    yearMax: document.getElementById('f-year-max')?.value ?? '',
+    minPrice: document.getElementById('f-minprice')?.value?.replace(/[^0-9]/g, '') ?? '',
+    maxPrice: document.getElementById('f-maxprice')?.value?.replace(/[^0-9]/g, '') ?? '',
   };
 }
 
@@ -406,6 +411,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   fetch(`${API_BASE}/health`).catch(() => {});
 
   initDirPicker();
+  initPillPicker('beds-picker');
+  initPillPicker('baths-picker');
   initTypePicker();
   initMoreFilters();
 
