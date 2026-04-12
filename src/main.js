@@ -28,7 +28,7 @@ import { resetRenderState, sortAndRender } from './ui/render.js';
 
 let excludedVisible = false;
 let searchInProgress = false;
-let allResults = { qualify: [], review: [], no: [] };
+let allResults = { qualify: [], no: [] };
 let lastRenderOpts = {};
 
 export function getCurrentResults() {
@@ -272,7 +272,6 @@ async function runSearch(placeResult) {
     lastRenderOpts = { centerLat: lat, centerLng: lng, radiusMiles, searchId };
 
     const qualify = [];
-    const review = [];
     const no = [];
 
     const allListings = [];
@@ -381,17 +380,15 @@ async function runSearch(placeResult) {
 
       if (result.verdict === 'QUALIFY') {
         qualify.push(result);
-      } else if (result.verdict === 'REVIEW') {
-        review.push(result);
       } else {
         no.push(result);
       }
 
-      allResults = { qualify, review, no };
+      allResults = { qualify, no };
       sortAndRender(allResults, sortEl?.value ?? 'default', lastRenderOpts);
-      updateCounts({ qualify: qualify.length, review: review.length, no: no.length });
+      updateCounts({ qualify: qualify.length, no: no.length });
 
-      if (qualify.length + review.length + no.length === 1) {
+      if (qualify.length + no.length === 1) {
         showResultsHeader(address);
       }
     }

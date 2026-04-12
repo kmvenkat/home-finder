@@ -14,7 +14,6 @@
   --warn: #f0c050;
   --danger: #f05a5a;
   --qualify: #b8f54a;
-  --review: #f0c050;
   --no: #f05a5a;
   --serif: 'Instrument Serif', Georgia, serif;
   --mono: 'Geist Mono', monospace;
@@ -792,10 +791,6 @@ input[type='range']::-webkit-slider-thumb:hover {
   background: rgba(184, 245, 74, 0.1);
   color: var(--qualify);
 }
-.count-pill.review {
-  background: rgba(240, 192, 80, 0.1);
-  color: var(--review);
-}
 .count-pill.no {
   background: rgba(240, 90, 90, 0.08);
   color: var(--muted2);
@@ -838,9 +833,6 @@ input[type='range']::-webkit-slider-thumb:hover {
 }
 .listing-card.qualify {
   border-left: 2px solid var(--qualify);
-}
-.listing-card.review {
-  border-left: 2px solid var(--review);
 }
 .listing-card.no {
   opacity: 0.5;
@@ -957,11 +949,6 @@ input[type='range']::-webkit-slider-thumb:hover {
   background: rgba(184, 245, 74, 0.08);
   color: var(--qualify);
   border-color: rgba(184, 245, 74, 0.2);
-}
-.card-tag.review {
-  background: rgba(240, 192, 80, 0.08);
-  color: var(--review);
-  border-color: rgba(240, 192, 80, 0.2);
 }
 .card-tag.warn {
   background: rgba(240, 192, 80, 0.08);

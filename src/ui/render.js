@@ -17,9 +17,7 @@ function dataKeyForListing(h) {
 export function renderCard(h, container, opts = {}) {
   const { radiusMiles } = opts;
   const card = document.createElement('div');
-  card.className = `listing-card ${
-    h.verdict === 'QUALIFY' ? 'qualify' : h.verdict === 'REVIEW' ? 'review' : 'no'
-  }`;
+  card.className = `listing-card ${h.verdict === 'QUALIFY' ? 'qualify' : 'no'}`;
 
   const thumbWrap = document.createElement('div');
   thumbWrap.className = 'card-thumb-wrap';
@@ -63,7 +61,7 @@ export function renderCard(h, container, opts = {}) {
   const svUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${h.lat},${h.lng}`;
 
   const needleAngle = h.facing ?? 0;
-  const needleColor = h.verdict === 'QUALIFY' ? '#b8f54a' : h.verdict === 'REVIEW' ? '#f0c050' : '#5e5c55';
+  const needleColor = h.verdict === 'QUALIFY' ? '#b8f54a' : '#5e5c55';
   const rad = (needleAngle - 90) * (Math.PI / 180);
   const nx2 = (14 + 10 * Math.cos(rad)).toFixed(1);
   const ny2 = (14 + 10 * Math.sin(rad)).toFixed(1);
@@ -71,9 +69,7 @@ export function renderCard(h, container, opts = {}) {
   const verdictTag =
     h.verdict === 'QUALIFY'
       ? `<span class="card-tag qualify">✓ ${h.dir} facing</span>`
-      : h.verdict === 'REVIEW'
-        ? `<span class="card-tag review">~ ${h.dir} · verify</span>`
-        : `<span class="card-tag">✗ ${h.dir} facing</span>`;
+      : `<span class="card-tag">✗ ${h.dir} facing</span>`;
 
   const flagTags = (h.flags || [])
     .slice(0, 2)
@@ -141,7 +137,6 @@ export function renderCard(h, container, opts = {}) {
 export function sortAndRender(results, sortValue, opts = {}) {
   const { searchId } = opts;
   const qualifyEl = document.getElementById('listings-qualify');
-  const reviewEl = document.getElementById('listings-review');
   const noEl = document.getElementById('listings-no');
 
   const isStreaming =
@@ -173,12 +168,10 @@ export function sortAndRender(results, sortValue, opts = {}) {
   };
 
   const q = sortBucket(results?.qualify);
-  const r = sortBucket(results?.review);
   const n = sortBucket(results?.no);
 
   if (!isStreaming) {
     if (qualifyEl) qualifyEl.innerHTML = '';
-    if (reviewEl) reviewEl.innerHTML = '';
     if (noEl) noEl.innerHTML = '';
   }
 
@@ -202,7 +195,6 @@ export function sortAndRender(results, sortValue, opts = {}) {
   };
 
   renderBucket(q, qualifyEl);
-  renderBucket(r, reviewEl);
   renderBucket(n, noEl);
 
   lastSortValue = sortValue;

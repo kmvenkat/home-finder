@@ -237,7 +237,7 @@ export function showError(msg) {
 }
 
 export function clearResults() {
-  ['listings-qualify', 'listings-review', 'listings-no'].forEach((id) => {
+  ['listings-qualify', 'listings-no'].forEach((id) => {
     const el = byId(id);
     if (el) el.innerHTML = '';
   });
@@ -262,12 +262,9 @@ export function showResultsHeader(address) {
   if (resultsHeader) resultsHeader.classList.add('show');
 }
 
-export function updateCounts({ qualify, review, no }) {
+export function updateCounts({ qualify, no }) {
   const q = byId('count-qualify');
   if (q) q.textContent = `${qualify} qualify`;
-
-  const r = byId('count-review');
-  if (r) r.textContent = `${review} review`;
 
   const n = byId('count-no');
   if (n) n.textContent = `${no} excluded`;

@@ -86,12 +86,7 @@ export async function getFacing({ lat, lng, locType = 'ROOFTOP', qualifyDirs }) 
   score = Math.max(score, 0);
   const confidence = score >= 80 ? 'HIGH' : score >= 50 ? 'MEDIUM' : 'LOW';
   const qualifies = qualifyDirs instanceof Set ? qualifyDirs.has(dir) : new Set(['N', 'NE', 'E']).has(dir);
-  const verdict =
-    qualifies && confidence === 'HIGH'
-      ? 'QUALIFY'
-      : qualifies && confidence === 'MEDIUM'
-        ? 'REVIEW'
-        : 'NO';
+  const verdict = qualifies ? 'QUALIFY' : 'NO';
 
   return {
     facing: Math.round(facing * 10) / 10,
