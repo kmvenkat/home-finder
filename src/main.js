@@ -36,6 +36,7 @@ import { resetRenderState, sortAndRender } from './ui/render.js';
 
 let excludedVisible = false;
 let searchInProgress = false;
+let searchCancelled = false;
 let allResults = { qualify: [], no: [] };
 let lastRenderOpts = {};
 let lastSelectedPlace = null;
@@ -276,6 +277,12 @@ async function runSearch() {
   searchInProgress = true;
 
   try {
+    searchCancelled = false;
+    const cancelPanelBtn = byId('cancel-btn');
+    if (cancelPanelBtn) cancelPanelBtn.hidden = false;
+    const mapCancelBtn = byId('map-cancel-btn');
+    if (mapCancelBtn) mapCancelBtn.hidden = false;
+
     if (typeof window.google === 'undefined') {
       showError('Maps SDK not loaded yet — try again in a moment.');
       return;
@@ -405,6 +412,12 @@ async function runSearch() {
     if (sortEl) sortEl.value = 'default';
 
     for (let i = 0; i < allListings.length; i++) {
+      if (searchCancelled) {
+        setProgress('Search cancelled', 100);
+        mirrorProgressToMap('Search cancelled', 100);
+        break;
+      }
+
       const h = allListings[i];
       const remaining = (allListings.length - (i + 1)) * 0.12;
       const pct = 20 + Math.round(((i + 1) / allListings.length) * 78);
@@ -469,17 +482,23 @@ async function runSearch() {
     }
 
     setLoading(false);
-    setProgress('Done', 100);
-    mirrorProgressToMap('Done', 100);
     showExcludedToggle(Boolean(no.length));
 
-    // Auto-switch to map view on desktop after search completes
-    if (window.innerWidth > 768) {
-      const mapBtn = document.getElementById('view-map-btn');
-      if (mapBtn) mapBtn.click();
+    if (!searchCancelled) {
+      setProgress('Done', 100);
+      mirrorProgressToMap('Done', 100);
+      // Auto-switch to map view on desktop after search completes
+      if (window.innerWidth > 768) {
+        const mapBtn = document.getElementById('view-map-btn');
+        if (mapBtn) mapBtn.click();
+      }
     }
   } finally {
     clearMapProgress();
+    const cancelPanelBtn = byId('cancel-btn');
+    if (cancelPanelBtn) cancelPanelBtn.hidden = true;
+    const mapCancelBtnEl = byId('map-cancel-btn');
+    if (mapCancelBtnEl) mapCancelBtnEl.hidden = true;
     searchInProgress = false;
   }
 }
@@ -524,6 +543,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Wire events
   if (searchBtn) searchBtn.addEventListener('click', () => runSearch().catch(() => {}));
+
+  byId('cancel-btn')?.addEventListener('click', () => {
+    searchCancelled = true;
+  });
+  byId('map-cancel-btn')?.addEventListener('click', () => {
+    searchCancelled = true;
+  });
 
   const excludedToggle = byId('excluded-toggle');
   if (excludedToggle) excludedToggle.addEventListener('click', toggleExcluded);
