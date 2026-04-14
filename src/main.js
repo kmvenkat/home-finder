@@ -82,6 +82,19 @@ function onMapsLoaded() {
     });
   }
 
+  const mapSearchInput = byId('map-search-input');
+  if (mapSearchInput) {
+    initAutocomplete(mapSearchInput, {
+      onPlaceSelected: (place) => {
+        lastSelectedPlace = place;
+        if (place.formatted_address) {
+          mapSearchInput.value = place.formatted_address;
+        }
+        byId('map-search-btn')?.click();
+      },
+    });
+  }
+
   initMapView({
     onSearchArea: (payload) => {
       if (payload?.address) {
