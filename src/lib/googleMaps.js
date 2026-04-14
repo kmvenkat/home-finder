@@ -63,7 +63,7 @@ export async function loadMapsSDK({ onLoaded } = {}) {
       s.id = 'maps-sdk';
       s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
         key,
-      )}&libraries=places&callback=__initMaps`;
+      )}&libraries=places,marker&map_ids=DEMO_MAP_ID&callback=__initMaps`;
       s.async = true;
       s.onerror = () => reject(new Error('Failed to load Maps SDK'));
       document.head.appendChild(s);

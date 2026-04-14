@@ -13,7 +13,7 @@
   </head>
   <body>
     <div class="wrap">
-      <header class="header">
+      <header class="header hero">
         <div class="header-eyebrow">Redfin · Street View · Geocoding</div>
         <h1 class="header-title">
           Find homes that<br /><em>face the right way</em>
@@ -280,12 +280,17 @@
         <div class="error-msg" id="error-msg"></div>
       </div>
 
+      <div id="results-section">
       <div class="results-header" id="results-header">
         <span class="results-title" id="results-title">Results</span>
         <div class="results-actions">
           <div class="results-counts">
             <span class="count-pill qualify" id="count-qualify">0 qualify</span>
             <span class="count-pill no" id="count-no">0 excluded</span>
+          </div>
+          <div id="view-toggle" class="view-toggle">
+            <button type="button" class="view-btn is-on" id="view-list-btn">List</button>
+            <button type="button" class="view-btn" id="view-map-btn">Map</button>
           </div>
           <select class="filter-select sort-select" id="sort-select">
             <option value="default">Sort: recommended</option>
@@ -298,6 +303,7 @@
           </select>
         </div>
       </div>
+      <div id="results-list-panel">
       <p class="results-footnote" id="results-footnote">
         † outside circular radius (bounding box result)
       </p>
@@ -327,6 +333,8 @@
         id="listings-no"
         style="display: none; margin-top: 10px"
       ></div>
+      </div>
+      </div>
       </div>
 
       <div id="panel-check" style="display: none">
@@ -388,6 +396,194 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="map-view" class="map-view" hidden>
+      <div class="map-header">
+        <button type="button" id="map-logo-btn" class="map-header-logo">Home Finder</button>
+
+        <div class="map-header-search">
+          <input
+            type="text"
+            id="map-search-input"
+            placeholder="Enter a center address..."
+            class="map-search-input"
+            autocomplete="off"
+          />
+          <button type="button" id="map-search-btn" class="map-search-btn">Search</button>
+        </div>
+
+        <div id="map-progress-wrap" class="map-progress-wrap" hidden>
+          <div id="map-progress-bar" class="map-progress-bar"></div>
+          <span id="map-progress-label" class="map-progress-label"></span>
+        </div>
+
+        <div id="map-dir-picker" class="map-dir-picker">
+          <button type="button" class="map-dir-btn is-on" data-dir="N">N</button>
+          <button type="button" class="map-dir-btn is-on" data-dir="NE">NE</button>
+          <button type="button" class="map-dir-btn is-on" data-dir="E">E</button>
+          <button type="button" class="map-dir-btn" data-dir="SE">SE</button>
+          <button type="button" class="map-dir-btn" data-dir="S">S</button>
+          <button type="button" class="map-dir-btn" data-dir="SW">SW</button>
+          <button type="button" class="map-dir-btn" data-dir="W">W</button>
+          <button type="button" class="map-dir-btn" data-dir="NW">NW</button>
+        </div>
+
+        <button type="button" id="map-more-filters-btn" class="map-more-filters-btn">
+          More filters ▾
+        </button>
+
+        <div id="map-header-view-toggle" class="view-toggle">
+          <button type="button" class="view-btn" id="map-header-list-btn">List</button>
+          <button type="button" class="view-btn is-on" id="map-header-map-btn">Map</button>
+        </div>
+      </div>
+
+      <div id="map-filters-bar" class="map-filters-bar" hidden>
+        <div class="map-filters-bar-inner">
+          <div class="map-filter-group">
+            <label class="map-filter-label">Price</label>
+            <div class="map-filter-row">
+              <select id="map-f-minprice" class="map-filter-select">
+                <option value="">Min</option>
+                <option value="50000">$50k</option>
+                <option value="100000">$100k</option>
+                <option value="150000">$150k</option>
+                <option value="200000">$200k</option>
+                <option value="250000">$250k</option>
+                <option value="300000">$300k</option>
+                <option value="400000">$400k</option>
+                <option value="500000">$500k</option>
+                <option value="750000">$750k</option>
+                <option value="1000000">$1M</option>
+              </select>
+              <span class="map-filter-dash">–</span>
+              <select id="map-f-maxprice" class="map-filter-select">
+                <option value="">Max</option>
+                <option value="200000">$200k</option>
+                <option value="300000">$300k</option>
+                <option value="400000">$400k</option>
+                <option value="500000">$500k</option>
+                <option value="600000">$600k</option>
+                <option value="750000">$750k</option>
+                <option value="1000000">$1M</option>
+                <option value="1500000">$1.5M</option>
+                <option value="2000000">$2M</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="map-filter-divider"></div>
+
+          <div class="map-filter-group">
+            <label class="map-filter-label">Beds</label>
+            <div class="map-pill-row" id="map-beds-picker">
+              <button type="button" class="map-pill is-on" data-val="">Any</button>
+              <button type="button" class="map-pill" data-val="1">1+</button>
+              <button type="button" class="map-pill" data-val="2">2+</button>
+              <button type="button" class="map-pill" data-val="3">3+</button>
+              <button type="button" class="map-pill" data-val="4">4+</button>
+              <button type="button" class="map-pill" data-val="5">5+</button>
+            </div>
+          </div>
+
+          <div class="map-filter-divider"></div>
+
+          <div class="map-filter-group">
+            <label class="map-filter-label">Baths</label>
+            <div class="map-pill-row" id="map-baths-picker">
+              <button type="button" class="map-pill is-on" data-val="">Any</button>
+              <button type="button" class="map-pill" data-val="1">1+</button>
+              <button type="button" class="map-pill" data-val="1.5">1.5+</button>
+              <button type="button" class="map-pill" data-val="2">2+</button>
+              <button type="button" class="map-pill" data-val="3">3+</button>
+              <button type="button" class="map-pill" data-val="4">4+</button>
+            </div>
+          </div>
+
+          <div class="map-filter-divider"></div>
+
+          <div class="map-filter-group">
+            <label class="map-filter-label">Type</label>
+            <div class="map-pill-row" id="map-type-picker">
+              <button type="button" class="map-pill is-on" data-type="6">House</button>
+              <button type="button" class="map-pill" data-type="3">Townhouse</button>
+              <button type="button" class="map-pill" data-type="2">Condo</button>
+              <button type="button" class="map-pill" data-type="4">Multi-family</button>
+              <button type="button" class="map-pill" data-type="13">Other</button>
+            </div>
+          </div>
+
+          <div class="map-filter-divider"></div>
+
+          <div class="map-filter-group">
+            <label class="map-filter-label">Sqft</label>
+            <div class="map-filter-row">
+              <select id="map-f-sqft-min" class="map-filter-select">
+                <option value="">Min</option>
+                <option value="500">500</option>
+                <option value="750">750</option>
+                <option value="1000">1,000</option>
+                <option value="1250">1,250</option>
+                <option value="1500">1,500</option>
+                <option value="2000">2,000</option>
+                <option value="2500">2,500</option>
+                <option value="3000">3,000</option>
+              </select>
+              <span class="map-filter-dash">–</span>
+              <select id="map-f-sqft-max" class="map-filter-select">
+                <option value="">Max</option>
+                <option value="1000">1,000</option>
+                <option value="1500">1,500</option>
+                <option value="2000">2,000</option>
+                <option value="2500">2,500</option>
+                <option value="3000">3,000</option>
+                <option value="4000">4,000</option>
+                <option value="5000">5,000</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="map-filter-divider"></div>
+
+          <div class="map-filter-group">
+            <label class="map-filter-label">
+              Radius <span id="map-radius-val">5 mi</span>
+            </label>
+            <input
+              type="range"
+              id="map-radius-slider"
+              min="1"
+              max="25"
+              value="5"
+              class="map-radius-slider"
+            />
+          </div>
+
+          <div class="map-filter-divider"></div>
+
+          <div class="map-filter-group map-filter-actions">
+            <button type="button" id="map-filters-apply" class="map-filters-apply">Apply</button>
+            <button type="button" id="map-filters-reset" class="map-filters-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-body">
+        <div id="map-listings-panel" class="map-listings-panel">
+          <div class="map-panel-header">
+            <span id="map-qualify-count">0 qualify</span>
+            <span id="map-excluded-count">0 excluded</span>
+          </div>
+          <div id="map-listing-cards"></div>
+        </div>
+        <div style="position:relative; flex:1; height:100%; min-width:0;">
+          <div id="map-canvas" class="map-canvas"></div>
+          <button type="button" id="search-area-btn" class="search-area-btn" hidden>
+            Search this area
+          </button>
         </div>
       </div>
     </div>

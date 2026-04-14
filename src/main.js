@@ -24,6 +24,14 @@ import {
   updateCounts,
 } from './ui/dom.js';
 import { renderCompass } from './ui/compass.js';
+import {
+  clearMapProgress,
+  initMapView,
+  plotResults,
+  resetMapView,
+  setMapProgress,
+  syncMapDirPickerToMain,
+} from './ui/mapView.js';
 import { resetRenderState, sortAndRender } from './ui/render.js';
 
 let excludedVisible = false;
@@ -49,6 +57,13 @@ function getFilters() {
   };
 }
 
+function maybePlotMap() {
+  const mv = document.getElementById('map-view');
+  if (mv && !mv.hidden) {
+    plotResults(allResults, lastRenderOpts);
+  }
+}
+
 function onMapsLoaded() {
   const addrInput = byId('addr-input');
   if (addrInput) {
@@ -65,6 +80,29 @@ function onMapsLoaded() {
       onPlaceSelected: () => {},
     });
   }
+
+  initMapView({
+    onSearchArea: (payload) => {
+      if (payload?.address) {
+        document.getElementById('view-list-btn')?.click();
+        syncMapDirPickerToMain();
+        const input = byId('addr-input');
+        if (input) input.value = String(payload.address).trim();
+        lastSelectedPlace = null;
+        runSearch().catch(() => {});
+        return;
+      }
+      const lat = payload?.lat;
+      const lng = payload?.lng;
+      if (lat == null || lng == null) return;
+      const input = byId('addr-input');
+      if (input) input.value = `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`;
+      lastSelectedPlace = null;
+      runSearch().catch(() => {});
+    },
+    getResults: getCurrentResults,
+    getRenderOpts: () => lastRenderOpts,
+  });
 }
 
 function setActiveTab(mode) {
@@ -229,6 +267,10 @@ function listingKey(h) {
   return `${addr}|${zip}`;
 }
 
+function mirrorProgressToMap(label, pct, count = '') {
+  setMapProgress(pct, count ? `${label} · ${count}` : label);
+}
+
 async function runSearch() {
   if (searchInProgress) return;
   searchInProgress = true;
@@ -250,10 +292,12 @@ async function runSearch() {
     clearResults();
     excludedVisible = false;
     resetRenderState();
+    resetMapView();
     const searchId = Date.now();
 
     setLoading(true);
     setProgress('Geocoding address...', 5);
+    mirrorProgressToMap('Geocoding address...', 5);
 
     let lat;
     let lng;
@@ -274,12 +318,15 @@ async function runSearch() {
     }
 
     const radiusMiles = parseInt(byId('radius-slider')?.value ?? '5', 10);
+    window.__lastSearchRadius = radiusMiles;
     const filters = getFilters();
     const qualifyDirs = getQualifyDirs();
     const propertyTypes = getPropertyTypes();
     lastRenderOpts = { centerLat: lat, centerLng: lng, radiusMiles, searchId };
+    window.__lastSearchCenter = { lat, lng };
 
     const qualify = [];
+    const review = [];
     const no = [];
 
     const allListings = [];
@@ -322,6 +369,7 @@ async function runSearch() {
       }
 
       setProgress(`Fetching listings... (${allListings.length} so far)`, 15);
+      mirrorProgressToMap(`Fetching listings... (${allListings.length} so far)`, 15);
 
       // Stop if Redfin returned fewer results than requested (true last page signal).
       if (rawCount < PAGE_SIZE) break;
@@ -338,6 +386,11 @@ async function runSearch() {
       18,
       `${allListings.length} to analyze`,
     );
+    mirrorProgressToMap(
+      `Fetched ${rawFetchedCount} raw, ${fetchedCount} post-filter, ${allListings.length} unique`,
+      18,
+      `${allListings.length} to analyze`,
+    );
 
     if (!allListings.length) {
       setLoading(false);
@@ -346,6 +399,7 @@ async function runSearch() {
     }
 
     setProgress(`Analyzing ${allListings.length} listings...`, 20, `0 / ${allListings.length}`);
+    mirrorProgressToMap(`Analyzing ${allListings.length} listings...`, 20, `0 / ${allListings.length}`);
 
     const sortEl = document.getElementById('sort-select');
     if (sortEl) sortEl.value = 'default';
@@ -356,6 +410,11 @@ async function runSearch() {
       const pct = 20 + Math.round(((i + 1) / allListings.length) * 78);
 
       setProgress(
+        `Checking facing direction... (~${fmtRemaining(remaining)} remaining)`,
+        pct,
+        `${i + 1} / ${allListings.length}`,
+      );
+      mirrorProgressToMap(
         `Checking facing direction... (~${fmtRemaining(remaining)} remaining)`,
         pct,
         `${i + 1} / ${allListings.length}`,
@@ -393,18 +452,34 @@ async function runSearch() {
       }
 
       allResults = { qualify, no };
+      window.__lastResults = allResults;
       sortAndRender(allResults, sortEl?.value ?? 'default', lastRenderOpts);
+      maybePlotMap();
       updateCounts({ qualify: qualify.length, no: no.length });
 
-      if (qualify.length + no.length === 1) {
+      if (qualify.length + review.length + no.length === 1) {
         showResultsHeader(address);
+        if (window.innerWidth > 768) {
+          const mapBtn = document.getElementById('view-map-btn');
+          if (mapBtn && document.getElementById('map-view')?.hidden !== false) {
+            mapBtn.click();
+          }
+        }
       }
     }
 
     setLoading(false);
     setProgress('Done', 100);
+    mirrorProgressToMap('Done', 100);
     showExcludedToggle(Boolean(no.length));
+
+    // Auto-switch to map view on desktop after search completes
+    if (window.innerWidth > 768) {
+      const mapBtn = document.getElementById('view-map-btn');
+      if (mapBtn) mapBtn.click();
+    }
   } finally {
+    clearMapProgress();
     searchInProgress = false;
   }
 }
@@ -428,6 +503,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('sort-select')?.addEventListener('change', (e) => {
     sortAndRender(allResults, e.target.value, lastRenderOpts);
+    maybePlotMap();
   });
 
   const searchBtn = byId('search-btn');
