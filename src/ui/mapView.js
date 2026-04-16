@@ -3,6 +3,8 @@ let markers = [];
 let centerMarker = null;
 let radiusCircle = null;
 let qualifyPinElements = [];
+let activePopup = null;
+let popupProjectionOverlay = null;
 let onAreaSearch = null;
 let mapInitialized = false;
 let getResults = null;
@@ -43,9 +45,27 @@ function initGoogleMap() {
     zoomControl: true,
   });
 
+  canvas.style.position = 'relative';
+
+  const popupEl = document.createElement('div');
+  popupEl.id = 'map-pin-popup';
+  popupEl.style.cssText = `
+    position: absolute;
+    display: none;
+    z-index: 20;
+    pointer-events: auto;
+  `;
+  canvas.appendChild(popupEl);
+  popupEl.addEventListener('click', (e) => e.stopPropagation());
+
   map.addListener('dragend', () => {
     const btn = document.getElementById('search-area-btn');
     if (btn) btn.hidden = false;
+  });
+
+  map.addListener('click', () => {
+    const popup = document.getElementById('map-pin-popup');
+    if (popup) popup.style.display = 'none';
   });
 
   mapInitialized = true;
@@ -75,6 +95,140 @@ function activateMarker(index, h, markerDiv) {
   card?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   document.querySelectorAll('#map-listing-cards .map-listing-card').forEach((c) => c.classList.remove('is-active'));
   card?.classList.add('is-active');
+
+  showPinPopup(h, markerDiv);
+}
+
+function showPinPopup(h, _markerDiv) {
+  const canvas = document.getElementById('map-canvas');
+  const popup = document.getElementById('map-pin-popup');
+  if (!popup || !canvas || !map || h.lat == null || h.lng == null) return;
+
+  const price = h.price != null ? `$${Number(h.price).toLocaleString()}` : '—';
+  const specs = [
+    h.beds ? `${h.beds}bd` : null,
+    h.baths ? `${h.baths}ba` : null,
+    h.sqft ? `${Number(h.sqft).toLocaleString()} sqft` : null,
+    h.yearBuilt ? `built ${h.yearBuilt}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const thumbSrc = h.thumbUrl ?? h.thumbnail;
+  const thumbHtml = thumbSrc
+    ? `<img src="${escapeAttr(String(thumbSrc))}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.display='none'">`
+    : `<div style="width:80px;height:80px;background:#292926;border-radius:6px;flex-shrink:0;"></div>`;
+
+  const svUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${h.lat},${h.lng}`;
+
+  popup.innerHTML = `
+    <div style="
+      background:#1f1f1d;
+      border:1px solid #adc12c;
+      border-radius:10px;
+      padding:10px;
+      width:220px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.5);
+      display:flex;
+      gap:10px;
+      position:relative;
+    ">
+      <button type="button" id="map-popup-close" style="
+        position:absolute;top:6px;right:8px;
+        background:none;border:none;color:#73736e;
+        font-size:13px;cursor:pointer;line-height:1;
+      ">✕</button>
+      ${thumbHtml}
+      <div style="flex:1;min-width:0;">
+        <div style="
+          display:inline-block;font-size:10px;color:#adc12c;
+          background:#1e3814;border:1px solid #adc12c;
+          border-radius:4px;padding:2px 6px;margin-bottom:4px;
+        ">✓ ${escapeHtml(h.dir ?? '?')} facing</div>
+        <div style="font-size:13px;font-weight:bold;color:white;margin-bottom:2px;">
+          ${escapeHtml(price)}
+        </div>
+        <div style="font-size:11px;font-weight:500;color:white;margin-bottom:1px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${escapeHtml(h.address ?? '')}
+        </div>
+        <div style="font-size:10px;color:#73736e;margin-bottom:4px;">
+          ${escapeHtml([h.city, h.state].filter(Boolean).join(', '))}
+        </div>
+        <div style="font-size:10px;color:#73736e;margin-bottom:6px;">
+          ${escapeHtml(specs)}
+        </div>
+        <div style="display:flex;gap:8px;">
+          ${
+            h.url
+              ? `<a href="${escapeAttr(String(h.url))}" target="_blank" rel="noreferrer"
+            style="font-size:11px;color:#adc12c;text-decoration:none;">Redfin</a>`
+              : ''
+          }
+          <a href="${escapeAttr(svUrl)}" target="_blank" rel="noreferrer"
+            style="font-size:11px;color:#73736e;text-decoration:none;">StreetView</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const positionPopup = () => {
+    const bounds = map.getBounds();
+    const projection = typeof map.getProjection === 'function' ? map.getProjection() : null;
+    const canvasRect = canvas.getBoundingClientRect();
+    const mapW = canvasRect.width || canvas.offsetWidth;
+    const mapH = canvasRect.height || canvas.offsetHeight;
+    const popupW = 220;
+    const popupH = 120;
+    let left;
+    let top;
+
+    if (projection && bounds && typeof projection.fromLatLngToPoint === 'function') {
+      const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
+      const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
+      const scale = 2 ** map.getZoom();
+      const worldPoint = projection.fromLatLngToPoint(
+        new google.maps.LatLng(Number(h.lat), Number(h.lng)),
+      );
+      const x = (worldPoint.x - bottomLeft.x) * scale;
+      const y = (worldPoint.y - topRight.y) * scale;
+      left = x - popupW / 2;
+      top = y - popupH - 20;
+    } else {
+      if (!popupProjectionOverlay) {
+        popupProjectionOverlay = new google.maps.OverlayView();
+        popupProjectionOverlay.onAdd = () => {};
+        popupProjectionOverlay.draw = () => {};
+        popupProjectionOverlay.onRemove = () => {};
+        popupProjectionOverlay.setMap(map);
+      }
+      const proj = popupProjectionOverlay.getProjection();
+      if (!proj) return;
+      const pt = proj.fromLatLngToContainerPixel(
+        new google.maps.LatLng(Number(h.lat), Number(h.lng)),
+      );
+      if (!pt) return;
+      left = pt.x - popupW / 2;
+      top = pt.y - popupH - 20;
+    }
+
+    left = Math.max(8, Math.min(left, mapW - popupW - 8));
+    top = Math.max(8, top);
+
+    popup.style.left = `${left}px`;
+    popup.style.top = `${top}px`;
+    popup.style.display = 'block';
+  };
+
+  positionPopup();
+  google.maps.event.addListenerOnce(map, 'idle', positionPopup);
+
+  document.getElementById('map-popup-close')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popup.style.display = 'none';
+  });
+
+  activePopup = popup;
 }
 
 function addQualifyMarkerAdvanced(h, i, priceStr) {
@@ -663,4 +817,6 @@ export function resetMapView() {
   if (cards) cards.innerHTML = '';
   const searchBtn = document.getElementById('search-area-btn');
   if (searchBtn) searchBtn.hidden = true;
+  const popupEl = document.getElementById('map-pin-popup');
+  if (popupEl) popupEl.style.display = 'none';
 }
